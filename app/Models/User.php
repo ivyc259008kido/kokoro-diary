@@ -33,4 +33,8 @@ class User extends Authenticatable
     {
         return $this->hasMany(Diary::class);
     }
+    public function monthlyReports()
+    {
+    return $this->hasMany(MonthlyReport::class);
+    }
 }
