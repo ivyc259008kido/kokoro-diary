@@ -17,22 +17,27 @@
                 <p class="text-gray-400 text-sm mt-1">今日はどんな一日でしたか？</p>
             </div>
 
-            {{-- 日記を書くボタン --}}
+            {{-- 日記を書くボタン(主役) --}}
             <a href="{{ route('diaries.create') }}"
-                class="block w-full text-center py-4 rounded-2xl font-bold text-white text-lg shadow-md mb-8 transition hover:opacity-90"
+                class="block w-full text-center py-4 rounded-2xl font-bold text-white text-lg shadow-md mb-4 transition hover:opacity-90"
                 style="background: linear-gradient(135deg, #a78bfa, #818cf8);">
                 ✏️ 今日のことを書く
             </a>
-            <a href="{{ route('monthly_reports.index') }}"
-                class="block w-full text-center py-3 rounded-2xl font-bold text-sm shadow-sm mb-8 transition hover:bg-purple-50 border-2"
-                style="border-color: #a78bfa; color: #a78bfa;">
-                📅 月次レポートを見る
-            </a>
-            <a href="{{ route('calendar.index') }}"
-                class="block w-full text-center py-3 rounded-2xl font-bold text-sm shadow-sm mb-8 transition hover:bg-purple-50 border-2"
-                style="border-color: #818cf8; color: #818cf8;">
-                🗓️ カレンダーを見る
-            </a>
+
+            {{-- 月次レポート・カレンダー(サブ、横並びで控えめに) --}}
+            <div class="grid grid-cols-2 gap-3 mb-8">
+                <a href="{{ route('monthly_reports.index') }}"
+                    class="block text-center py-3.5 rounded-xl font-bold text-xs shadow-sm transition hover:bg-purple-50 border bg-white"
+                    style="border-color: #a78bfa; color: #a78bfa;">
+                    📅 月次レポート
+                </a>
+                <a href="{{ route('calendar.index') }}"
+                    class="block text-center py-3.5 rounded-xl font-bold text-xs shadow-sm transition hover:bg-purple-50 border bg-white"
+                    style="border-color: #a78bfa; color: #a78bfa;">
+                    🗓️ カレンダー
+                </a>
+            </div>
+
             {{-- 日記一覧 --}}
             @forelse ($diaries as $diary)
             <a href="{{ route('diaries.show', $diary) }}" class="block mb-4">
