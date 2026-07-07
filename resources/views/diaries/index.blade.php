@@ -28,6 +28,11 @@
                 style="border-color: #a78bfa; color: #a78bfa;">
                 📅 月次レポートを見る
             </a>
+            <a href="{{ route('calendar.index') }}"
+                class="block w-full text-center py-3 rounded-2xl font-bold text-sm shadow-sm mb-8 transition hover:bg-purple-50 border-2"
+                style="border-color: #818cf8; color: #818cf8;">
+                🗓️ カレンダーを見る
+            </a>
             {{-- 日記一覧 --}}
             @forelse ($diaries as $diary)
             <a href="{{ route('diaries.show', $diary) }}" class="block mb-4">
@@ -53,6 +58,11 @@
                 <p class="text-gray-400 text-xs mt-1">最初の一言を書いてみましょう</p>
             </div>
             @endforelse
+
+            {{-- ページ送りリンク --}}
+            <div class="mt-6">
+                {{ $diaries->links() }}
+            </div>
 
         </div>
     </div>

@@ -4,6 +4,7 @@ use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DiaryController;
 use App\Http\Controllers\MonthlyReportController;
+use App\Http\Controllers\CalendarController;
 
 Route::get('/', function () {
     return redirect()->route('login');
@@ -20,6 +21,9 @@ Route::middleware('auth')->group(function () {
     Route::post('/monthly-reports/generate', [MonthlyReportController::class, 'generate'])->name('monthly_reports.generate');
     Route::get('/monthly-reports/{monthlyReport}', [MonthlyReportController::class, 'show'])->name('monthly_reports.show');
     Route::delete('/monthly-reports/{monthlyReport}', [MonthlyReportController::class, 'destroy'])->name('monthly_reports.destroy');
+
+    Route::get('/calendar', [CalendarController::class, 'index'])->name('calendar.index');
+    Route::get('/calendar/day/{date}', [CalendarController::class, 'day'])->name('calendar.day');
 });
 
 require __DIR__.'/auth.php';

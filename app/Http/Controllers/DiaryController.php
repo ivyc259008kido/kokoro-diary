@@ -13,7 +13,7 @@ class DiaryController extends Controller
     // 一覧
     public function index()
     {
-        $diaries = Auth::user()->diaries()->latest()->get();
+        $diaries = Auth::user()->diaries()->latest()->paginate(8);
         return view('diaries.index', compact('diaries'));
     }
 
