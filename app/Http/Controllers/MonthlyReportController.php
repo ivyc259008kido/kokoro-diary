@@ -10,8 +10,42 @@ class MonthlyReportController extends Controller
 {
     public function index()
     {
-        $reports = Auth::user()->monthlyReports()->orderBy('year', 'desc')->orderBy('month', 'desc')->get();
-        return view('monthly_reports.index', compact('reports'));
+        $user = Auth::user();
+        $reports = $user->monthlyReports()->orderBy('year', 'desc')->orderBy('month', 'desc')->get();
+
+        $diaries = $user->diaries()
+            ->where('created_at', '>=', \Carbon\Carbon::now()->subDays(30))
+            ->orderBy('created_at', 'asc')
+            ->get();
+
+        $moodData = $diaries->map(function ($diary) {
+            return [
+                'date' => $diary->created_at->format('n/j'),
+                'mood' => $diary->mood ? $diary->mood * 20 : null,
+            ];
+        })->filter(fn($d) => $d['mood'] !== null)->values();
+
+        $avgMood = $moodData->avg('mood') ?? 0;
+
+        $allThemes = $diaries->flatMap(fn($d) => $d->themes ?? [])->filter();
+        $themeCounts = $allThemes->countBy()->sortDesc()->take(5);
+
+        $positivity = round($avgMood);
+        if ($positivity >= 60) {
+            $positivityLabel = 'ポジティブ';
+            $positivityEmoji = '😊';
+        } elseif ($positivity >= 40) {
+            $positivityLabel = 'フラット';
+            $positivityEmoji = '😐';
+        } else {
+            $positivityLabel = 'ネガティブ';
+            $positivityEmoji = '😔';
+        }
+
+        return view('monthly_reports.index', compact(
+            'reports', 'moodData', 'avgMood',
+            'themeCounts', 'positivity', 'positivityLabel', 'positivityEmoji'
+        ));
     }
 
     public function generate(Request $request)

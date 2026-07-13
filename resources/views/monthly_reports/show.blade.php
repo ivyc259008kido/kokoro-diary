@@ -13,10 +13,9 @@
             {{-- レポート本文 --}}
             <div class="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 mb-6"
                 style="font-family: 'Georgia', serif;">
-                <div class="absolute -top-3 left-6"></div>
-                <p class="text-gray-700 leading-loose whitespace-pre-wrap text-base">
-                    {{ $monthlyReport->report_text }}
-                </p>
+                <div class="text-gray-700 leading-loose text-base prose prose-sm max-w-none">
+                    {!! \Illuminate\Support\Str::markdown($monthlyReport->report_text) !!}
+                </div>
             </div>
 
             {{-- 戻るボタン・削除ボタン --}}
