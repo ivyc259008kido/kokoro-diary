@@ -1,58 +1,106 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Kokoro Diary 📖
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+> 書いて、気づいて、動き出す。
 
-## About Laravel
+AIとの交換日記型ジャーナリングアプリです。日々の出来事や感情を日記として記録すると、AIが共感やアドバイスの返信をくれます。蓄積された日記データからAIが感情を自動分析・可視化することで、自己理解を深めることができます。
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+---
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## 主な機能
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+### 📝 日記投稿（CRUD）
+- 日記の作成・閲覧・編集・削除
+- タイムライン形式で過去の日記を一覧表示
 
-## Learning Laravel
+### 🤖 AI自動返信・感情分析
+- 日記投稿時にGemini APIが返信を自動生成
+- 感情タグ（例：疲労・学習・体調管理など）を自動抽出
+- 気分スコア（1〜5）を自動判定
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+### 📊 感情トレンドグラフ
+- 直近30日間の気分スコアを折れ線グラフで可視化
+- 平均スコアとポジティブ度を表示
+- 主要テーマタグを集計して表示
 
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+### 📅 月次レポート
+- 1ヶ月分の日記をAIがまとめて振り返りレポートを生成
+- 今月のテーマ・感情の傾向・印象的な出来事・来月へのメッセージを自動生成
+- レポートの閲覧・削除が可能
 
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
+### 🔐 ユーザー管理
+- 新規登録・ログイン・ログアウト
 
-## Agentic Development
+---
 
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+## 使い方
+
+1. 新規登録またはログイン
+2. ホーム画面の「✏️ 今日のことを書く」から日記を投稿
+3. 投稿するとAIから返信が届く
+4. 「📅 月次レポートを見る」から感情トレンドグラフと月次レポートを確認
+
+---
+
+## 使用技術
+
+| カテゴリ | 技術 |
+|---|---|
+| バックエンド | PHP / Laravel 13 |
+| フロントエンド | Blade / Tailwind CSS |
+| データベース | SQLite |
+| AI連携 | Gemini API（Google） |
+| グラフ描画 | Chart.js |
+| 認証 | Laravel Breeze |
+
+---
+
+## 環境構築手順
+
+### 必要な環境
+- PHP 8.2以上
+- Composer
+- Node.js / npm
+
+### セットアップ
 
 ```bash
-composer require laravel/boost --dev
+# リポジトリをクローン
+git clone https://github.com/your-username/ai-kokoro-diary.git
+cd ai-kokoro-diary
 
-php artisan boost:install
+# パッケージインストール
+composer install
+npm install
+
+# 環境ファイルの設定
+cp .env.example .env
+php artisan key:generate
+
+# Gemini APIキーを.envに追加
+GEMINI_API_KEY=your_api_key_here
+
+# マイグレーション実行
+php artisan migrate
+
+# 開発サーバー起動
+php artisan serve
+npm run dev
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+ブラウザで `http://127.0.0.1:8000` を開いてください。
 
-## Contributing
+---
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+## DB設計
 
-## Code of Conduct
+users (1) ──── (多) diaries
+diaries (多) ── diary_tag（中間テーブル） ── (多) tags
+users (1) ──── (多) monthly_reports
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
-
-## Security Vulnerabilities
-
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
-
-## License
-
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+| テーブル名 | 役割 |
+|---|---|
+| users | ユーザー情報 |
+| diaries | 日記本文・AI返信・感情スコア・テーマ |
+| tags | 感情タグマスター |
+| diary_tag | 日記と感情タグの中間テーブル |
+| monthly_reports | 月次レポート |
