@@ -65,7 +65,7 @@ AIとの交換日記型ジャーナリングアプリです。日々の出来事
 
 ```bash
 # リポジトリをクローン
-git clone https://github.com/your-username/ai-kokoro-diary.git
+git clone https://github.com/ivyc259008kido/kokoro-diary.git
 cd ai-kokoro-diary
 
 # パッケージインストール
