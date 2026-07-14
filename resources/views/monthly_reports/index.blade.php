@@ -41,27 +41,27 @@
                     {{ $positivityEmoji }} {{ $positivityLabel }}（{{ $positivity }}%）
                 </div>
                 @if ($themeCounts->isNotEmpty())
-                    <p class="text-xs text-gray-500 mb-2">主要テーマ</p>
-                    <div class="flex gap-2 flex-wrap">
-                        @foreach ($themeCounts as $theme => $count)
-                            <span class="px-3 py-1 rounded-full text-sm text-indigo-600" style="background: #e0e7ff;">
-                                #{{ $theme }}
-                            </span>
-                        @endforeach
-                    </div>
+                <p class="text-xs text-gray-500 mb-2">主要テーマ</p>
+                <div class="flex gap-2 flex-wrap">
+                    @foreach ($themeCounts as $theme => $count)
+                    <span class="px-3 py-1 rounded-full text-sm text-indigo-600" style="background: #e0e7ff;">
+                        #{{ $theme }}
+                    </span>
+                    @endforeach
+                </div>
                 @endif
             </div>
 
             {{-- メッセージ --}}
             @if (session('success'))
-                <div class="bg-purple-50 border border-purple-200 rounded-2xl p-4 mb-6 text-purple-700 text-sm">
-                    {{ session('success') }}
-                </div>
+            <div class="bg-purple-50 border border-purple-200 rounded-2xl p-4 mb-6 text-purple-700 text-sm">
+                {{ session('success') }}
+            </div>
             @endif
             @if (session('error'))
-                <div class="bg-red-50 border border-red-200 rounded-2xl p-4 mb-6 text-red-500 text-sm">
-                    {{ session('error') }}
-                </div>
+            <div class="bg-red-50 border border-red-200 rounded-2xl p-4 mb-6 text-red-500 text-sm">
+                {{ session('error') }}
+            </div>
             @endif
 
             {{-- レポート生成フォーム --}}
@@ -70,18 +70,35 @@
                 <form method="POST" action="{{ route('monthly_reports.generate') }}">
                     @csrf
                     <div class="flex gap-3 items-center mb-4">
-                        <select name="year" class="rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-300">
-                            @for ($y = now()->year; $y >= now()->year - 2; $y--)
+                        <div class="relative">
+                            <select name="year"
+                                class="rounded-xl border border-gray-200 pl-3 pr-8 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-300"
+                                style="appearance: none; -webkit-appearance: none; -moz-appearance: none; background-image: none;">
+                                @for ($y = now()->year; $y >= now()->year - 2; $y--)
                                 <option value="{{ $y }}">{{ $y }}年</option>
-                            @endfor
-                        </select>
-                        <select name="month" class="rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-300">
-                            @for ($m = 1; $m <= 12; $m++)
-                                <option value="{{ $m }}" {{ $m == now()->subMonth()->month ? 'selected' : '' }}>
+                                @endfor
+                            </select>
+                            <svg class="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none"
+                                fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </div>
+
+                        <div class="relative">
+                            <select name="month"
+                                class="rounded-xl border border-gray-200 pl-3 pr-8 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-300"
+                                style="appearance: none; -webkit-appearance: none; -moz-appearance: none; background-image: none;">
+                                @for ($m = 1; $m <= 12; $m++)
+                                    <option value="{{ $m }}" {{ $m == now()->subMonth()->month ? 'selected' : '' }}>
                                     {{ $m }}月
-                                </option>
-                            @endfor
-                        </select>
+                                    </option>
+                                    @endfor
+                            </select>
+                            <svg class="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none"
+                                fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </div>
                     </div>
                     <button type="submit"
                         class="w-full py-3 rounded-xl text-white font-bold text-sm transition hover:opacity-90"
@@ -93,22 +110,22 @@
 
             {{-- レポート一覧 --}}
             @forelse ($reports as $report)
-                <a href="{{ route('monthly_reports.show', $report) }}" class="block mb-4">
-                    <div class="bg-white rounded-2xl p-5 shadow-sm hover:shadow-md transition border border-gray-100">
-                        <p class="text-purple-500 font-bold text-sm mb-2">
-                            {{ $report->year }}年{{ $report->month }}月のレポート
-                        </p>
-                        <p class="text-gray-600 text-sm leading-relaxed">
-                            {{ Str::limit($report->report_text, 100) }}
-                        </p>
-                    </div>
-                </a>
-            @empty
-                <div class="bg-white rounded-2xl p-8 shadow-sm text-center border border-gray-100">
-                    <p class="text-4xl mb-3">📊</p>
-                    <p class="text-gray-500 text-sm">まだレポートがありません</p>
-                    <p class="text-gray-400 text-xs mt-1">上のボタンから生成してみましょう</p>
+            <a href="{{ route('monthly_reports.show', $report) }}" class="block mb-4">
+                <div class="bg-white rounded-2xl p-5 shadow-sm hover:shadow-md transition border border-gray-100">
+                    <p class="text-purple-500 font-bold text-sm mb-2">
+                        {{ $report->year }}年{{ $report->month }}月のレポート
+                    </p>
+                    <p class="text-gray-600 text-sm leading-relaxed">
+                        {{ Str::limit($report->report_text, 100) }}
+                    </p>
                 </div>
+            </a>
+            @empty
+            <div class="bg-white rounded-2xl p-8 shadow-sm text-center border border-gray-100">
+                <p class="text-4xl mb-3">📊</p>
+                <p class="text-gray-500 text-sm">まだレポートがありません</p>
+                <p class="text-gray-400 text-xs mt-1">上のボタンから生成してみましょう</p>
+            </div>
             @endforelse
 
         </div>
@@ -119,7 +136,6 @@
     <script>
         const moodData = @json($moodData);
         const avgMood = {{ $avgMood }};
-
         const labels = moodData.map(d => d.date);
         const moods = moodData.map(d => d.mood);
         const avgLine = moodData.map(() => avgMood);
@@ -129,8 +145,7 @@
             type: 'line',
             data: {
                 labels: labels,
-                datasets: [
-                    {
+                datasets: [{
                         label: '感情スコア',
                         data: moods,
                         borderColor: '#818cf8',
@@ -163,7 +178,9 @@
                     }
                 },
                 plugins: {
-                    legend: { position: 'top' }
+                    legend: {
+                        position: 'top'
+                    }
                 }
             }
         });
