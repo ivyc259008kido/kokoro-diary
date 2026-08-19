@@ -153,7 +153,6 @@ EOT;
                 'encouragement' => $data['encouragement'] ?? null,
                 'themes' => $data['themes'] ?? [],
             ];
-
         } catch (\Throwable $e) {
             Log::error('Gemini exception', [
                 'message' => $e->getMessage(),
@@ -193,13 +192,38 @@ EOT;
             'body' => 'required|string',
         ]);
 
+        $body = $request->body;
+
+        try {
+            // 🌟 編集後の内容でAIを再生成（同じ内容ならキャッシュが効く）
+            $analysis = \Illuminate\Support\Facades\Cache::remember(
+                'diary_ai_' . md5($body),
+                3600,
+                function () use ($body) {
+                    return $this->getAiReply($body);
+                }
+            );
+        } catch (\Throwable $e) {
+            Log::error('AI Error: ' . $e->getMessage());
+
+            $analysis = [
+                'summary' => null,
+                'mood' => null,
+                'encouragement' => '（AI取得に失敗しましたが日記は更新されました）',
+                'themes' => [],
+            ];
+        }
+
         $diary->update([
-            'body' => $request->body,
+            'body' => $body,
+            'summary' => $analysis['summary'] ?? null,
+            'mood' => $analysis['mood'] ?? null,
+            'encouragement' => $analysis['encouragement'] ?? null,
+            'themes' => $analysis['themes'] ?? [],
         ]);
 
         return redirect()->route('diaries.show', $diary);
     }
-
     // 削除
     public function destroy(Diary $diary)
     {
