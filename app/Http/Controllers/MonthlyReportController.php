@@ -95,7 +95,10 @@ class MonthlyReportController extends Controller
 
         $prompt = "Read the following diary entries from {$year}/{$month} and write a monthly reflection report in Japanese. Include main themes, emotional trends, memorable moments, and a message for next month.\n\nDiaries:\n{$diaryTexts}";
 
-        $response = \Illuminate\Support\Facades\Http::withoutVerifying()->post($url, [
+        $response = \Illuminate\Support\Facades\Http::withoutVerifying()
+        ->timeout(120)
+        ->retry(2, 1000)
+        ->post($url, [
             'contents' => [
                 ['parts' => [['text' => $prompt]]]
             ]
