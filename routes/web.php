@@ -8,6 +8,9 @@ use App\Http\Controllers\CalendarController;
 use App\Http\Controllers\DashboardController;
 
 Route::get('/', function () {
+    if (auth()->check()) {
+        return redirect()->route('diaries.index');
+    }
     return redirect()->route('login');
 });
 Route::middleware('auth')->group(function () {
@@ -26,4 +29,4 @@ Route::middleware('auth')->group(function () {
     Route::get('/calendar/day/{date}', [CalendarController::class, 'day'])->name('calendar.day');
 });
 
-require __DIR__.'/auth.php';
+require __DIR__ . '/auth.php';
