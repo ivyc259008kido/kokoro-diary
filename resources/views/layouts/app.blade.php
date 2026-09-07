@@ -39,7 +39,10 @@
                     Kokoro Diary
                 </a>
                 <div class="flex items-center gap-4">
-                    <span class="text-gray-400 text-sm">{{ Auth::user()->name ?? '' }}</span>
+                    <a href="{{ route('profile.edit') }}"
+                        class="text-gray-400 text-sm hover:text-purple-500 transition">
+                        {{ Auth::user()->name ?? '' }}
+                    </a>
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf
                         <button type="submit"
