@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Diary;
+use App\Models\Tag;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
@@ -25,6 +26,8 @@ class DiaryController extends Controller
 
     public function store(Request $request)
     {
+        set_time_limit(60);
+
         $request->validate([
             'body' => 'required|string',
         ]);
@@ -51,13 +54,18 @@ class DiaryController extends Controller
             ];
         }
 
-        Auth::user()->diaries()->create([
+                $diary = Auth::user()->diaries()->create([
             'body' => $body,
             'summary' => $analysis['summary'] ?? null,
             'mood' => $analysis['mood'] ?? null,
             'encouragement' => $analysis['encouragement'] ?? null,
             'themes' => $analysis['themes'] ?? [],
         ]);
+
+        // 🌟 タグを別テーブルにも保存
+        $tagIds = collect($analysis['themes'] ?? [])
+            ->map(fn($name) => Tag::firstOrCreate(['name' => $name])->id);
+        $diary->tags()->sync($tagIds);
 
         return redirect()->route('diaries.index');
     }
@@ -108,7 +116,7 @@ EOT;
 
         try {
             $response = retry(3, function () use ($url, $prompt) {
-                return Http::timeout(20)
+                return Http::timeout(12)
                     ->withoutVerifying()
                     ->post($url, [
                         'contents' => [
@@ -188,6 +196,8 @@ EOT;
     // 更新
     public function update(Request $request, Diary $diary)
     {
+        set_time_limit(60);
+
         $request->validate([
             'body' => 'required|string',
         ]);
@@ -214,7 +224,7 @@ EOT;
             ];
         }
 
-        $diary->update([
+                $diary->update([
             'body' => $body,
             'summary' => $analysis['summary'] ?? null,
             'mood' => $analysis['mood'] ?? null,
@@ -222,12 +232,34 @@ EOT;
             'themes' => $analysis['themes'] ?? [],
         ]);
 
+        // 🌟 タグを別テーブルにも保存
+        $tagIds = collect($analysis['themes'] ?? [])
+            ->map(fn($name) => Tag::firstOrCreate(['name' => $name])->id);
+        $diary->tags()->sync($tagIds);
+
         return redirect()->route('diaries.show', $diary);
     }
+
     // 削除
     public function destroy(Diary $diary)
     {
         $diary->delete();
         return redirect()->route('diaries.index');
+    }
+
+    // タグで絞り込んだ一覧
+    public function byTag(string $tagName)
+    {
+        $tag = Tag::where('name', $tagName)->firstOrFail();
+
+        $diaries = $tag->diaries()
+            ->where('user_id', Auth::id())
+            ->latest()
+            ->paginate(8);
+
+        return view('diaries.index', [
+            'diaries' => $diaries,
+            'activeTag' => $tag->name,
+        ]);
     }
 }

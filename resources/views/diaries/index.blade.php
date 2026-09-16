@@ -38,24 +38,25 @@
                 </a>
             </div>
 
-            {{-- 日記一覧 --}}
+                        {{-- 日記一覧 --}}
             @forelse ($diaries as $diary)
-            <a href="{{ route('diaries.show', $diary) }}" class="block mb-4">
-                <div class="bg-white rounded-2xl p-5 shadow-sm hover:shadow-md transition border border-gray-100">
+            <div class="bg-white rounded-2xl p-5 shadow-sm hover:shadow-md transition border border-gray-100 mb-4">
+                <a href="{{ route('diaries.show', $diary) }}" class="block">
                     <p class="text-gray-400 text-xs mb-2">{{ $diary->created_at->format('Y年m月d日') }}</p>
                     <p class="text-gray-700 text-sm leading-relaxed">{{ Str::limit($diary->body, 80) }}</p>
-                    @if ($diary->themes && count($diary->themes) > 0)
-                    <div class="flex gap-2 mt-3 flex-wrap">
-                        @foreach ($diary->themes as $theme)
-                        <span class="text-xs px-2 py-1 rounded-full text-purple-500"
-                            style="background: #f3e8ff;">
-                            #{{ $theme }}
-                        </span>
-                        @endforeach
-                    </div>
-                    @endif
+                </a>
+                @if ($diary->themes && count($diary->themes) > 0)
+                <div class="flex gap-2 mt-3 flex-wrap">
+                    @foreach ($diary->themes as $theme)
+                    <a href="{{ route('diaries.by_tag', $theme) }}"
+                        class="text-xs px-2 py-1 rounded-full text-purple-500 hover:bg-purple-200 transition"
+                        style="background: #f3e8ff;">
+                        #{{ $theme }}
+                    </a>
+                    @endforeach
                 </div>
-            </a>
+                @endif
+            </div>
             @empty
             <div class="bg-white rounded-2xl p-8 shadow-sm text-center border border-gray-100">
                 <p class="text-4xl mb-3">📖</p>

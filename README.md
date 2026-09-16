@@ -88,6 +88,9 @@ npm run dev
 
 ブラウザで `http://127.0.0.1:8000` を開いてください。
 
+
+cd C:\Users\259008\ai-kokoro-diary
+
 ---
 
 ## DB設計

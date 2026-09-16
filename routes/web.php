@@ -19,7 +19,9 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::resource('diaries', DiaryController::class);
-
+    Route::get('/tags/{tagName}/diaries', [DiaryController::class, 'byTag'])
+    ->where('tagName', '.*')
+    ->name('diaries.by_tag');
     Route::get('/monthly-reports', [MonthlyReportController::class, 'index'])->name('monthly_reports.index');
     Route::post('/monthly-reports/generate', [MonthlyReportController::class, 'generate'])->name('monthly_reports.generate');
     Route::get('/monthly-reports/{monthlyReport}', [MonthlyReportController::class, 'show'])->name('monthly_reports.show');
