@@ -4,13 +4,21 @@ namespace App\Http\Controllers;
 
 use App\Models\Diary;
 use App\Models\Tag;
+use App\Services\GeminiService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 
 class DiaryController extends Controller
 {
+    private GeminiService $gemini;
+
+    public function __construct(GeminiService $gemini)
+    {
+        $this->gemini = $gemini;
+    }
+
     // 一覧
     public function index()
     {
@@ -24,6 +32,7 @@ class DiaryController extends Controller
         return view('diaries.create');
     }
 
+    // 保存
     public function store(Request $request)
     {
         set_time_limit(60);
@@ -35,17 +44,13 @@ class DiaryController extends Controller
         $body = $request->body;
 
         try {
-            // 🌟 キャッシュ（同じ日記はAI呼ばない）
-            $analysis = \Illuminate\Support\Facades\Cache::remember(
+            $analysis = Cache::remember(
                 'diary_ai_' . md5($body),
                 3600,
-                function () use ($body) {
-                    return $this->getAiReply($body);
-                }
+                fn() => $this->gemini->generateDiaryReply($body)
             );
         } catch (\Throwable $e) {
             Log::error('AI Error: ' . $e->getMessage());
-
             $analysis = [
                 'summary' => null,
                 'mood' => null,
@@ -54,7 +59,7 @@ class DiaryController extends Controller
             ];
         }
 
-                $diary = Auth::user()->diaries()->create([
+        $diary = Auth::user()->diaries()->create([
             'body' => $body,
             'summary' => $analysis['summary'] ?? null,
             'mood' => $analysis['mood'] ?? null,
@@ -62,123 +67,11 @@ class DiaryController extends Controller
             'themes' => $analysis['themes'] ?? [],
         ]);
 
-        // 🌟 タグを別テーブルにも保存
         $tagIds = collect($analysis['themes'] ?? [])
             ->map(fn($name) => Tag::firstOrCreate(['name' => $name])->id);
         $diary->tags()->sync($tagIds);
 
         return redirect()->route('diaries.index');
-    }
-
-    // AI呼び出し
-    private function getAiReply(string $body): array
-    {
-        $apiKey = env('GEMINI_API_KEY');
-
-        $url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={$apiKey}";
-
-        $prompt = <<<EOT
-あなたは日記を書いた人の「少し先を歩いている先輩」です。
-
-立場：
-・同じ経験をしてきた
-・今は少しだけ客観視できる位置にいる
-・説教はしないが、現実的な視点は持っている
-・一般論ではなく、経験者としての具体的な視点を含めること
-
-目的：
-・日記の内容を整理する
-・感情の流れを理解する
-・必要なら「こういう見方もある」と軽く提案する
-
-トーン：
-・友達ではなく先輩
-・厳しすぎない
-・でも甘やかしすぎない
-・リアルな視点を少し入れる
-
-絶対ルール：
-・出力はJSONのみ
-・余計な文章は禁止
-・コードブロック禁止
-
-出力形式：
-{
-    "summary": "200文字以内の要約",
-    "mood": 1から5の数値,
-    "encouragement": "先輩としてのアドバイス",
-    "themes": ["テーマ1", "テーマ2"]
-}
-
-日記：
-{$body}
-EOT;
-
-        try {
-            $response = retry(3, function () use ($url, $prompt) {
-                return Http::timeout(12)
-                    ->withoutVerifying()
-                    ->post($url, [
-                        'contents' => [
-                            ['parts' => [['text' => $prompt]]]
-                        ],
-                        'generationConfig' => [
-                            'responseMimeType' => 'application/json',
-                        ]
-                    ]);
-            }, 200);
-
-            if (!$response->successful()) {
-                Log::error('Gemini API failed', [
-                    'status' => $response->status(),
-                    'body' => $response->body(),
-                ]);
-
-                return $this->fallbackResponse('AI取得に失敗しました。');
-            }
-
-            $text = $response->json('candidates.0.content.parts.0.text');
-
-            if (!$text) {
-                Log::error('Gemini empty response', $response->json());
-                return $this->fallbackResponse('AIの応答が空でした。');
-            }
-
-            $data = json_decode($text, true);
-
-            if (json_last_error() !== JSON_ERROR_NONE) {
-                Log::error('JSON decode failed', [
-                    'error' => json_last_error_msg(),
-                    'raw' => $text,
-                ]);
-
-                return $this->fallbackResponse('AIの解析結果が不正でした。');
-            }
-
-            return [
-                'summary' => $data['summary'] ?? null,
-                'mood' => $data['mood'] ?? null,
-                'encouragement' => $data['encouragement'] ?? null,
-                'themes' => $data['themes'] ?? [],
-            ];
-        } catch (\Throwable $e) {
-            Log::error('Gemini exception', [
-                'message' => $e->getMessage(),
-            ]);
-
-            return $this->fallbackResponse('AI処理中にエラーが発生しました。');
-        }
-    }
-
-    // フォールバック
-    private function fallbackResponse(string $message): array
-    {
-        return [
-            'summary' => null,
-            'mood' => null,
-            'encouragement' => $message,
-            'themes' => [],
-        ];
     }
 
     // 詳細
@@ -205,17 +98,13 @@ EOT;
         $body = $request->body;
 
         try {
-            // 🌟 編集後の内容でAIを再生成（同じ内容ならキャッシュが効く）
-            $analysis = \Illuminate\Support\Facades\Cache::remember(
+            $analysis = Cache::remember(
                 'diary_ai_' . md5($body),
                 3600,
-                function () use ($body) {
-                    return $this->getAiReply($body);
-                }
+                fn() => $this->gemini->generateDiaryReply($body)
             );
         } catch (\Throwable $e) {
             Log::error('AI Error: ' . $e->getMessage());
-
             $analysis = [
                 'summary' => null,
                 'mood' => null,
@@ -224,7 +113,7 @@ EOT;
             ];
         }
 
-                $diary->update([
+        $diary->update([
             'body' => $body,
             'summary' => $analysis['summary'] ?? null,
             'mood' => $analysis['mood'] ?? null,
@@ -232,7 +121,6 @@ EOT;
             'themes' => $analysis['themes'] ?? [],
         ]);
 
-        // 🌟 タグを別テーブルにも保存
         $tagIds = collect($analysis['themes'] ?? [])
             ->map(fn($name) => Tag::firstOrCreate(['name' => $name])->id);
         $diary->tags()->sync($tagIds);
